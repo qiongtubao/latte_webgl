@@ -1,0 +1,64 @@
+<html>
+<header>
+
+</header>
+
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+<script src="../latte_lib.js"></script>
+<script src="../latte_webgl.js"></script>
+<script>
+    /**
+     * a_TextCoord
+     * 左上 左下  右上 右下  定位
+    */
+
+    //彩色三角形
+    var latte_lib = latte.require("latte_lib");
+    var LatteWebGL = latte.require("latte_webgl");
+    var drawWebGL = LatteWebGL.createDrawWebGL(document.getElementById("canvas"));
+    // drawWebGL.createParam('webgl', '','');
+    latte_lib.async.auto({
+        "vsh": function (cb) {
+            drawWebGL.loadFile('./09.vsh', cb);
+        },
+        "fsh": function (cb) {
+            drawWebGL.loadFile('./09.fsh', cb);
+        },
+        "texture": function (cb) {
+            drawWebGL.loadImage('./texture_02.png'/*'./bkg-grass.jpg'*/, cb);
+        }
+    }, function (err, data) {
+        var param = drawWebGL.createParam('09', data.vsh, data.fsh);
+        drawWebGL.useProgram("09");
+        let a_Position = param.getAttribLocation('a_Position');
+        a_Position.byteSize = 2;
+        let u_FragColor = param.getUniformLocation('a_TextCoord');
+        u_FragColor.byteSize = 2;
+        // param.getArrayBuffer('a_Buffer').set([
+        //     -0.5, 0.5, 0.0, 1.0,
+        //     -0.5, -0.5, 0.0, 0.0,
+        //     0.5, 0.5, 1.0, 1.0,
+        //     0.5, -0.5, 1.0, 0.0
+        // ]);
+        param.getArrayBuffer('a_Buffer').set([-1, 1, -1, -1, 1, 1, 1, -1]);
+        param.bindBuffer('a_Buffer', 'a_Position', 4 * 2);
+        param.getArrayBuffer('b_Buffer').set([0.0, 1, 0.0, 0.0, 1, 1, 1, 0.0]);
+        // param.getArrayBuffer('b_Buffer').set([0.0, .5, 0.0, 0.0, .5, .5, .5, 0.0]);
+        // param.getArrayBuffer('b_Buffer').set([0.0,0.0,]);5
+        param.bindBuffer('b_Buffer', 'a_TextCoord', 4 * 2, 0);
+        var u_Sampler = param.getUniformLocation('u_Sampler');
+        var texture = param.createTexture('image');
+
+        param.bindTexture('image', 0);
+        texture.set(u_Sampler, data.texture.source);
+        u_Sampler.set(new LatteWebGL.Vector1i(0));
+        // drawWebGL.gl.drawArrays(drawWebGL.gl.TRIANGLE_STRIP, 0, 4);
+        drawWebGL.gl.drawArrays(drawWebGL.gl.TRIANGLE_STRIP, 0, 4);
+
+
+    });
+</script>
+
+</html>

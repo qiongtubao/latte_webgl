@@ -1,0 +1,40 @@
+<html>
+<header>
+
+</header>
+
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+<script src="../latte_lib.js"></script>
+<script src="../latte_webgl.js"></script>
+<script>
+    //直接平移
+    var latte_lib = latte.require("latte_lib");
+    var LatteWebGL = latte.require("latte_webgl");
+    var drawWebGL = LatteWebGL.createDrawWebGL(document.getElementById("canvas"));
+    // drawWebGL.createParam('webgl', '','');
+    latte_lib.async.auto({
+        "vsh": function (cb) {
+            drawWebGL.loadFile('./03.vsh', cb);
+        },
+        "fsh": function (cb) {
+            drawWebGL.loadFile('./03.fsh', cb);
+        }
+    }, function (err, data) {
+        var param = drawWebGL.createParam('03', data.vsh, data.fsh);
+        drawWebGL.useProgram("03");
+        let a_Position = param.getAttribLocation('a_Position');
+        a_Position.byteSize = 2;
+        let u_FragColor = param.getUniformLocation('u_FragColor');
+        let u_Translation = param.getUniformLocation('u_Translation');
+        param.getArrayBuffer('a_Position_Buffer').set([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+        // param.setArrayBuffer('a_Position', [0.0, 0.5, -0.5, -0.5, 0.5, -0.5], 2);
+        param.bindBuffer('a_Position_Buffer', 'a_Position', 0);
+        u_FragColor.set([1.0, 0.0, 0.0, 1.0]);
+        u_Translation.set([0.2, 0.5, 0.0, 0.0]);
+        drawWebGL.gl.drawArrays(drawWebGL.gl.TRIANGLES, 0, 3);
+    });
+</script>
+
+</html>

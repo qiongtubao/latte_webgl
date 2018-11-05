@@ -1,0 +1,21 @@
+{
+	"name": "latte_webgl",
+	"version": "0.0.1",
+	"description": "latte_webgl",
+	"keywords": [
+		"latte",
+		"latte_webgl"
+	],
+	"author": "qiongtubao",
+	"main": "lib/index.js",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/qiongtubao/latte_webgl.git"
+	},
+	"dependencies": {
+		"latte_lib": "*"
+	},
+	"devDependencies": {
+		"chai": "*"
+	}
+}

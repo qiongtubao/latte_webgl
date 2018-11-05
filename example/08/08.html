@@ -1,0 +1,166 @@
+<html>
+<header>
+
+</header>
+
+<body>
+  <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+<script src="../latte_lib.js"></script>
+<script src="../latte_webgl.js"></script>
+<script>
+
+  //彩色三角形
+  var latte_lib = latte.require("latte_lib");
+  var LatteWebGL = latte.require("latte_webgl");
+  var drawWebGL = LatteWebGL.createDrawWebGL(document.getElementById("canvas"));
+  // drawWebGL.createParam('webgl', '','');
+  latte_lib.async.auto({
+    "vsh": function (cb) {
+      drawWebGL.loadFile('./08.vsh', cb);
+    },
+    "fsh": function (cb) {
+      drawWebGL.loadFile('./08.fsh', cb);
+    },
+    "vsh1": function (cb) {
+      drawWebGL.loadFile('./08_1.vsh', cb);
+    },
+    "fsh1": function (cb) {
+      drawWebGL.loadFile('./08_1.fsh', cb);
+    }
+  }, function (err, data) {
+    var param1 = drawWebGL.createParam('08', data.vsh, data.fsh);
+    drawWebGL.useProgram("08");
+    var param2 = drawWebGL.createParam('08_1', data.vsh1, data.fsh1);
+    let a_position = param1.getAttribLocation('a_position', "vec2");
+    let a_texCoord = param1.getAttribLocation('a_texCoord', "vec2");
+    let u_mvpMatrix = param1.getUniformLocation('u_mvpMatrix');
+    let s_texture0 = param1.getUniformLocation('s_texture0');
+    let u_channelFlag = param1.getUniformLocation('u_channelFlag');
+    let u_baseColor_Loc = param1.getUniformLocation('u_baseColor');
+    let u_maskFlag_Loc = param1.getUniformLocation('u_maskFlag');
+
+    let a_position_Loc_Off = param2.getAttribLocation('a_position');
+    let a_texCoord_Off = param2.getAttribLocation('a_texCoord');
+    let u_mvpMatrix_Loc_Off = param2.getAttribLocation('u_mvpMatrix');
+    let u_ClipMatrix_Loc_Off = param2.getUniformLocation('u_ClipMatrix');
+    let s_texture0_Loc_Off = param2.getUniformLocation('s_texture0');
+    let s_texture1_Loc_Off = param2.getUniformLocation('s_texture1');
+    let u_channelFlag_Loc_Off = param2.getUniformLocation('u_channelFlag');
+    let u_baseColor_Loc_Off = param2.getUniformLocation('u_baseColor');
+
+    param1.getArrayBuffer('a_Buffer').set([
+      1297.85205078125, 2239.259521484375,
+      1635.2188720703125, 2279.743408203125,
+      2056.927001953125, 2330.3486328125,
+      2387.546142578125, 2367.458984375,
+      2411.163330078125, 2900.49853515625,
+      2384.17578125, 3339.07568359375,
+      2370.681640625, 3598.848388671875,
+      2255.978515625, 3754.03369140625,
+      2063.680908203125, 3750.653564453125,
+      1732.822998046875, 3728.179443359375,
+      1452.5687255859375, 3634.71728515625,
+      1202.292724609375, 3575.620361328125,
+      1195.661376953125, 3079.824951171875,
+      1240.503173828125, 2522.637451171875,
+      1604.8568115234375, 2549.636962890625,
+      2097.41162109375, 2640.72509765625,
+      2073.799560546875, 3028.687744140625,
+      2110.9111328125, 3474.013671875,
+      1830.8975830078125, 3393.044921875,
+      1532.28076171875, 3434.5712890625,
+      1594.7412109375, 2924.097412109375]);
+    let elements = [
+      0, 1, 14,
+      1, 2, 14,
+      2, 3, 15,
+      3, 4, 15,
+      4, 5, 16,
+      5, 6, 17,
+      6, 7, 17,
+      7, 8, 17,
+      8, 9, 18,
+      9, 10, 19,
+      10, 11, 19,
+      11, 12, 19,
+      12, 13, 20,
+      13, 0, 14,
+      13, 14, 20,
+      14, 2, 15,
+      14, 15, 20,
+      15, 4, 16,
+      15, 16, 20,
+      16, 5, 17,
+      16, 17, 18,
+      17, 8, 18,
+      18, 9, 19,
+      18, 19, 16,
+      19, 12, 20,
+      19, 20, 16];
+    param1.getElementArrayBuffer('a_ElementBuffer').set(elements);
+    param1.bindBuffer('a_Buffer', 'a_position', 0);
+
+
+
+    // let u_FragColor = param.getUniformLocation('a_TextCoord');
+    // u_FragColor.byteSize = 2;
+    // param.getArrayBuffer('a_Buffer').set([
+    //   -0.5, 0.5, 0.0, 1.0,
+    //   -0.5, -0.5, 0.0, 0.0,
+    //   0.5, 0.5, 1.0, 1.0,
+    //   0.5, -0.5, 1.0, 0.0
+    // ]);
+    // param.bindBuffer('a_Buffer', 'a_Position', 4 * 4);
+    // param.bindBuffer('a_Buffer', 'a_TextCoord', 4 * 4, 2 * 4);
+    let ext = param1.getExtension('EXT_texture_filter_anisotropic');
+
+    var texture = param1.createTexture('texture_02');
+    drawWebGL.loadImage('./texture_02.png', function (err, data) {
+      param1.bindTexture("texture_02", 0);
+      texture.set2(s_texture0, data.source);
+      // drawWebGL.gl.bindTexture(drawWebGL.gl.TEXTURE_2D, null);
+      // param1.bindTexture("texture_02", 1);
+      s_texture0.set(new LatteWebGL.Vector1i(0));
+      param1.getArrayBuffer('b_Buffer').set([
+        0.06060606241226196, 0.6021080017089844,
+        0.1923583596944809, 0.5862977504730225,
+        0.35704874992370605, 0.5665348768234253,
+        0.48616600036621094, 0.5520421266555786,
+        0.4953886568546295, 0.3438735008239746,
+        0.4848484992980957, 0.17259550094604492,
+        0.4795784056186676, 0.07114624977111816,
+        0.43478259444236755, 0.010540187358856201,
+        0.3596837818622589, 0.011857688426971436,
+        0.22266139090061188, 0.04874837398529053,
+        0.10540184378623962, 0.09617918729782104,
+        0.009222661145031452, 0.13175231218338013,
+        0.010540184564888477, 0.321475625038147,
+        0.038208167999982834, 0.4914361238479614,
+        0.18050065636634827, 0.4808959364891052,
+        0.37285903096199036, 0.44532281160354614,
+        0.3636363744735718, 0.29380762577056885,
+        0.37812912464141846, 0.11989462375640869,
+        0.26877471804618835, 0.15151512622833252,
+        0.13965743780136108, 0.1884058117866516,
+        0.1765480935573578, 0.3346508741378784]);
+      param1.bindBuffer('b_Buffer', 'a_texCoord', 0);
+      u_mvpMatrix.set(new LatteWebGL.Matrix4([0.000750000006519258, 0, 0, 0, 0, -0.0005425531999208033, 0, 0, 0, 0, 1, 0, -0.9994999766349792, 0.8134680390357971, 0, 1]));
+      // drawWebGL.gl.drawArrays(drawWebGL.gl.TRIANGLE_STRIP, 0, 4);
+      u_maskFlag_Loc.set(new LatteWebGL.Vector1i(0));
+      u_baseColor_Loc.set(new LatteWebGL.Vector4(1, 1, 1, 1));
+
+      drawWebGL.gl.enable(drawWebGL.gl.CULL_FACE);
+      drawWebGL.gl.enable(drawWebGL.gl.BLEND);
+      drawWebGL.gl.blendEquationSeparate(drawWebGL.gl.FUNC_ADD, drawWebGL.gl.FUNC_ADD);
+      drawWebGL.gl.blendFuncSeparate(drawWebGL.gl.ONE, drawWebGL.gl.ONE_MINUS_SRC_ALPHA, drawWebGL.gl.ONE, drawWebGL.gl.ONE_MINUS_SRC_ALPHA);
+      if (ext.isOK()) {
+        drawWebGL.gl.texParameteri(drawWebGL.gl.TEXTURE_2D, ext.ext.TEXTURE_MAX_ANISOTROPY_EXT, ext.getParameter("MAX_TEXTURE_MAX_ANISOTROPY_EXT"));
+      }
+      drawWebGL.gl.drawElements(drawWebGL.gl.TRIANGLES, elements.length, drawWebGL.gl.UNSIGNED_SHORT, 0);
+    });
+
+  });
+</script>
+
+</html>

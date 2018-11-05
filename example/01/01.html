@@ -1,0 +1,31 @@
+<html>
+<header>
+
+</header>
+
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+<script src="../latte_lib.js"></script>
+<script src="../latte_webgl.js"></script>
+<script>
+    //画点
+    var latte_lib = latte.require("latte_lib");
+    var LatteWebGL = latte.require("latte_webgl");
+    var drawWebGL = LatteWebGL.createDrawWebGL(document.getElementById("canvas"));
+    // drawWebGL.createParam('webgl', '','');
+    latte_lib.async.auto({
+        "vsh": function (cb) {
+            drawWebGL.loadFile('./01.vsh', cb);
+        },
+        "fsh": function (cb) {
+            drawWebGL.loadFile('./01.fsh', cb);
+        }
+    }, function (err, data) {
+        var param = drawWebGL.createParam('01', data.vsh, data.fsh);
+        drawWebGL.useProgram("01");
+        drawWebGL.gl.drawArrays(drawWebGL.gl.POINTS, 0, 1);
+    });
+</script>
+
+</html>

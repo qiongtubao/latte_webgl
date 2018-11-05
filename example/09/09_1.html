@@ -1,0 +1,105 @@
+<html>
+<header>
+
+</header>
+
+<body>
+    <canvas id="canvas" width=1024 height=1024>
+
+    </canvas>
+    <canvas id="canvas2"></canvas>
+</body>
+<script src="../latte_lib.js"></script>
+<script src="../latte_webgl.js"></script>
+<script>
+    let canvasDom = document.getElementById('canvas');
+    let context = canvasDom.getContext("2d");
+    var latte_lib = latte.require("latte_lib");
+    var LatteWebGL = latte.require("latte_webgl");
+    var drawWebGL = LatteWebGL.createDrawWebGL(document.getElementById("canvas2"));
+    let allPoint = [
+        0.06060606241226196, 0.6021080017089844,
+        0.1923583596944809, 0.5862977504730225,
+        0.35704874992370605, 0.5665348768234253,
+        0.48616600036621094, 0.5520421266555786,
+        0.4953886568546295, 0.3438735008239746,
+        0.4848484992980957, 0.17259550094604492,
+        0.4795784056186676, 0.07114624977111816,
+        0.43478259444236755, 0.010540187358856201,
+        0.3596837818622589, 0.011857688426971436,
+        0.22266139090061188, 0.04874837398529053,
+        0.10540184378623962, 0.09617918729782104,
+        0.009222661145031452, 0.13175231218338013,
+        0.010540184564888477, 0.321475625038147,
+        0.038208167999982834, 0.4914361238479614,
+        0.18050065636634827, 0.4808959364891052,
+        0.37285903096199036, 0.44532281160354614,
+        0.3636363744735718, 0.29380762577056885,
+        0.37812912464141846, 0.11989462375640869,
+        0.26877471804618835, 0.15151512622833252,
+        0.13965743780136108, 0.1884058117866516,
+        0.1765480935573578, 0.3346508741378784
+    ];
+    let elements = [
+        0, 1, 14,
+        1, 2, 14,
+        2, 3, 15,
+        3, 4, 15,
+        4, 5, 16,
+        5, 6, 17,
+        6, 7, 17,
+        7, 8, 17,
+        8, 9, 18,
+        9, 10, 19,
+        10, 11, 19,
+        11, 12, 19,
+        12, 13, 20,
+        13, 0, 14,
+        13, 14, 20,
+        14, 2, 15,
+        14, 15, 20,
+        15, 4, 16,
+        15, 16, 20,
+        16, 5, 17,
+        16, 17, 18,
+        17, 8, 18,
+        18, 9, 19,
+        18, 19, 16,
+        19, 12, 20,
+        19, 20, 16];
+    let random = function () {
+        return parseInt(255 * Math.random());
+    }
+    drawWebGL.loadImage('./texture_02.png'/*'./bkg-grass.jpg'*/, function (err, data) {
+        context.drawImage(data.source, 0, 0, 1024, 1024);
+
+        // for (let i = 0, len = elements.length; i < len; i += 3) {
+        //     context.fillStyle = "rgb(" + random() + "," + random() + "," + random() + ")"
+        //     context.fillStyle(allPoint[2 * elements[i]] * 1024, allPoint[2 * elements[i] + 1] * 1024);
+        //     context.fillRect(allPoint[i] * 1024, 1024 - allPoint[i + 1] * 1024, 10, 10);
+        // }
+
+        // for (let i = 0, len = allPoint.length; i < len; i += 2) {
+        //     context.fillStyle = "rgb(" + random() + "," + random() + "," + random() + ")"
+        //     context.fillRect(allPoint[i] * 1024, 1024 - allPoint[i + 1] * 1024, 10, 10);
+        // }
+        /*
+
+    let i = 0;
+    context.fillStyle = "rgb(" + random() + "," + random() + "," + random() + ")"
+    context.moveTo(allPoint[elements[2 * i]] * 1024, 1024 - allPoint[2 * elements[i] + 1] * 1024);
+    context.lineTo(allPoint[elements[2 * i + 1]] * 1024, 1024 - allPoint[elements[2 * i + 1]] * 1024);
+    */
+        for (let i = 0, len = elements.length; i < len; i += 3) {
+            context.fillStyle = "rgb(" + random() + "," + random() + "," + random() + ")"
+            context.moveTo(allPoint[2 * elements[i]] * 1024, 1024 - 1024 * allPoint[2 * elements[i] + 1]);
+            context.lineTo(allPoint[2 * elements[i + 1]] * 1024, 1024 - 1024 * allPoint[2 * elements[i + 1] + 1]);
+            context.lineTo(allPoint[2 * elements[i + 2]] * 1024, 1024 - 1024 * allPoint[2 * elements[i + 2] + 1]);
+            context.lineTo(allPoint[2 * elements[i]] * 1024, 1024 - 1024 * allPoint[2 * elements[i] + 1]);
+            context.stroke();
+        }
+    });
+
+</script>
+
+</html>

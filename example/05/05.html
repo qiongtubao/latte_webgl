@@ -1,0 +1,54 @@
+<html>
+    <header>
+
+    </header>
+    <body>
+        <canvas id="canvas" width="500" height="500"></canvas>
+    </body>
+    <script src="../latte_lib.js"></script>
+    <script src="../latte_webgl.js"></script>
+    <script>
+        // latte.DEBUG = true;
+        //矩阵旋转
+        var latte_lib = latte.require("latte_lib");
+        var LatteWebGL = latte.require("latte_webgl");
+        var drawWebGL = LatteWebGL.createDrawWebGL(document.getElementById("canvas"));
+        // drawWebGL.createParam('webgl', '','');
+        latte_lib.async.auto({
+            "vsh": function(cb) {
+                drawWebGL.loadFile('./05.vsh', cb);
+            },
+            "fsh": function(cb) {
+                drawWebGL.loadFile('./05.fsh', cb);
+            }
+        }, function(err, data){
+            var param = drawWebGL.createParam('05', data.vsh, data.fsh);
+            drawWebGL.useProgram("05");
+            let a_Position = param.getAttribLocation('a_Position');
+            a_Position.byteSize = 2;
+            let u_FragColor = param.getUniformLocation('u_FragColor');
+            let u_Translation = param.getUniformLocation('u_Translation');
+            
+            // param.setArrayBuffer('a_Position', [0.0, 0.5, -0.5, -0.5, 0.5, -0.5], 2);
+            param.getArrayBuffer('a_Position_Buffer').set([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+            param.bindBuffer('a_Position_Buffer', 'a_Position', 0);
+            u_FragColor.set([1.0,0.0,0.0,1.0]);
+            // var angle = 45.0;
+            // var radian = Math.PI * angle / 180.0;
+            // var cosB = Math.cos(radian);
+            // var sinB = Math.sin(radian);
+            
+
+            // param.setMatrix('u_Translation', [
+            //     cosB, sinB, 0.0, 0.0,
+            //     -sinB, cosB, 0.0, 0.0,
+            //     0.0, 0.0, 1.0, 0.0,
+            //     0.0, 0.0, 0.0, 1.0
+            // ]);     
+            var matrix = new LatteWebGL.Matrix4();
+            matrix.scale(1.2,1,1).rotate(45 );
+            u_Translation.set(matrix);   
+            drawWebGL.gl.drawArrays(drawWebGL.gl.TRIANGLES, 0, 3);
+        });
+    </script>
+</html>

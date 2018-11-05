@@ -1,0 +1,38 @@
+<html>
+<header>
+
+</header>
+
+<body>
+    <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+<script src="../latte_lib.js"></script>
+<script src="../latte_webgl.js"></script>
+<script>
+    //画三角形
+    var latte_lib = latte.require("latte_lib");
+    var LatteWebGL = latte.require("latte_webgl");
+    var drawWebGL = LatteWebGL.createDrawWebGL(document.getElementById("canvas"));
+    // drawWebGL.createParam('webgl', '','');
+    latte_lib.async.auto({
+        "vsh": function (cb) {
+            drawWebGL.loadFile('./02.vsh', cb);
+        },
+        "fsh": function (cb) {
+            drawWebGL.loadFile('./02.fsh', cb);
+        }
+    }, function (err, data) {
+        var param = drawWebGL.createParam('02', data.vsh, data.fsh);
+        drawWebGL.useProgram("02");
+        let a_Position = param.getAttribLocation('a_Position');
+        let u_FragColor = param.getUniformLocation('u_FragColor');
+        a_Position.byteSize = 2;
+        // param.setArrayBuffer('a_Position', [0.0, 0.5, -0.5, -0.5, 0.5, -0.5], 2);
+        u_FragColor.set(new LatteWebGL.Vector4([1.0, 0.0, 0.0, 1.0]));
+        param.getArrayBuffer('a_Position_Buffer').set([0.0, 0.5, -0.5, -0.5, 0.5, -0.5]);
+        param.bindBuffer('a_Position_Buffer', 'a_Position', 0);
+        drawWebGL.gl.drawArrays(drawWebGL.gl.TRIANGLES, 0, 3);
+    });
+</script>
+
+</html>

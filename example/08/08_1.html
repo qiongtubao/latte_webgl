@@ -1,0 +1,217 @@
+<html>
+<header>
+
+</header>
+
+<body>
+    <canvas id="canvas" width="680" height="1000"></canvas>
+</body>
+<script src="../latte_lib.js"></script>
+<script src="../latte_webgl.js"></script>
+<script>
+    //彩色三角形
+    var latte_lib = latte.require("latte_lib");
+    var LatteWebGL = latte.require("latte_webgl");
+    var drawWebGL = LatteWebGL.createDrawWebGL(document.getElementById("canvas"));
+    // drawWebGL.createParam('webgl', '','');
+
+
+    let compileShader = function (gl, type, shaderStr) {
+        var shader = gl.createShader(type);
+        if (shader == null) {
+            console.error("can't to create shader");
+            return null;
+        }
+        gl.shaderSource(shader, shaderStr);
+        gl.compileShader(shader);
+        var shaderParameter = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+        if (!shaderParameter) {
+            var log = gl.getShaderInfoLog(shader);
+            console.error("error log:", log);
+            gl.deleteShader(shader);
+            return null;
+        }
+        return shader;
+    }
+    function createArrayBuffer(gl, buffer, size) {
+        if (buffer == null) {
+            buffer = gl.createBuffer();
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ARRAY_BUFFER, size, gl.DYNAMIC_DRAW);
+        return buffer;
+    }
+    function createElementArrayBuffer(gl, buffer, size) {
+        if (buffer == null) {
+            buffer = gl.createBuffer();
+        }
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, size, gl.DYNAMIC_DRAW);
+        return buffer;
+    }
+    latte_lib.async.auto({
+        "vsh": function (cb) {
+            drawWebGL.loadFile('./08.vsh', cb);
+        },
+        "fsh": function (cb) {
+            drawWebGL.loadFile('./08.fsh', cb);
+        },
+        "vsh1": function (cb) {
+            drawWebGL.loadFile('./08_1.vsh', cb);
+        },
+        "fsh1": function (cb) {
+            drawWebGL.loadFile('./08_1.fsh', cb);
+        },
+        "texture": function (cb) {
+            drawWebGL.loadImage('./texture_02.png', cb);
+        }
+    }, function (err, data) {
+        let gl = drawWebGL.gl;
+        let texture = gl.createTexture();
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, 1);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data.texture.source);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        let shaderProgram = gl.createProgram();
+        if (!shaderProgram) {
+            throw new Error("create shaderProgram")
+        }
+        let shaderProgramOff = gl.createProgram();
+        if (!shaderProgramOff) {
+            throw new Error("create shaderProgramOff")
+        }
+        let vertShader = compileShader(gl, gl.VERTEX_SHADER, data.vsh);
+        if (!vertShader) {
+            throw ("Vertex shader compile 1!");
+        }
+        let vertShaderOff = compileShader(gl, gl.VERTEX_SHADER, data.vsh1);
+        if (!vertShaderOff) {
+            throw ("Vertex compileShader 2");
+        }
+        let fragShader = compileShader(gl, gl.FRAGMENT_SHADER, data.fsh);
+        if (!fragShader) {
+            throw ("Vertex fragShader1");
+        }
+        let fragShaderOff = compileShader(gl, gl.FRAGMENT_SHADER, data.fsh1);
+        if (!fragShaderOff) {
+            throw ("Vertex fragShaderOfff");
+        }
+        gl.attachShader(shaderProgram, vertShader);
+        gl.attachShader(shaderProgram, fragShader);
+        gl.attachShader(shaderProgramOff, vertShaderOff);
+        gl.attachShader(shaderProgramOff, fragShaderOff);
+        gl.linkProgram(shaderProgram);
+        gl.linkProgram(shaderProgramOff);
+        if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+            let log = gl.getProgramInfoLog(shaderProgram);
+            throw log;
+
+            vertShader && gl.deleteShader(vertShader);
+            fragShader && gl.deleteShader(fragShader);
+            shaderProgram && gl.deleteProgram(shaderProgram);
+            vertShaderOff && gl.deleteShader(vertShaderOff);
+            fragShaderOff && gl.deleteShader(fragShaderOff);
+            shaderProgramOff && gl.deleteProgram(shaderProgramOff);
+        }
+        let a_position_Loc = gl.getAttribLocation(shaderProgram, "a_position");
+        let a_texCoord_Loc = gl.getAttribLocation(shaderProgram, "a_texCoord");
+        let u_matrix_Loc = gl.getUniformLocation(shaderProgram, "u_mvpMatrix");
+        let s_texture0_Loc = gl.getUniformLocation(shaderProgram, "s_texture0");
+        let u_channelFlag = gl.getUniformLocation(shaderProgram, "u_channelFlag");
+        let u_baseColor_Loc = gl.getUniformLocation(shaderProgram, "u_baseColor");
+        let u_maskFlag_Loc = gl.getUniformLocation(shaderProgram, "u_maskFlag");
+
+        let anisotropyExt = gl.getExtension("EXT_texture_filter_anisotropic") ||
+            gl.getExtension("WEBKIT_EXT_texture_filter_anisotropic") ||
+            gl.getExtension("MOZ_EXT_texture_filter_anisotropic");
+        if (anisotropyExt) {
+            maxAnisotropy = gl.getParameter(anisotropyExt.MAX_TEXTURE_MAX_ANISOTROPY_EXT);
+        }
+        setTimeout(function () {
+            gl.clear(gl.COLOR_BUFFER_BIT)
+            gl.disable(gl.SCISSOR_TEST);
+            gl.disable(gl.STENCIL_TEST);
+            gl.disable(gl.DEPTH_TEST);
+            gl.frontFace(gl.CW);
+            gl.enable(gl.BLEND);
+            gl.colorMask(true, true, true, true);
+            gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, null);
+            //let bufferData1 = [1297.85205078125, 2239.259521484375, 1635.2188720703125, 2279.743408203125, 2056.927001953125, 2330.3486328125, 2387.546142578125, 2367.458984375, 2411.163330078125, 2900.49853515625, 2384.17578125, 3339.07568359375, 2370.681640625, 3598.848388671875, 2255.978515625, 3754.03369140625, 2063.680908203125, 3750.653564453125, 1732.822998046875, 3728.179443359375, 1452.5687255859375, 3634.71728515625, 1202.292724609375, 3575.620361328125, 1195.661376953125, 3079.824951171875, 1240.503173828125, 2522.637451171875, 1604.8568115234375, 2549.636962890625, 2097.41162109375, 2640.72509765625, 2073.799560546875, 3028.687744140625, 2110.9111328125, 3474.013671875, 1830.8975830078125, 3393.044921875, 1532.28076171875, 3434.5712890625, 1594.7412109375, 2924.097412109375];
+            let startx = 1297.85205078125;
+            let starty = 2239.259521484375;
+            let bufferData1 = ([1297.85205078125, 2239.259521484375, 1635.2188720703125, 2279.743408203125, 2056.927001953125, 2330.3486328125, 2387.546142578125, 2367.458984375, 2411.163330078125, 2900.49853515625, 2384.17578125, 3339.07568359375, 2370.681640625, 3598.848388671875, 2255.978515625, 3754.03369140625, 2063.680908203125, 3750.653564453125, 1732.822998046875, 3728.179443359375, 1452.5687255859375, 3634.71728515625, 1202.292724609375, 3575.620361328125, 1195.661376953125, 3079.824951171875, 1240.503173828125, 2522.637451171875, 1604.8568115234375, 2549.636962890625, 2097.41162109375, 2640.72509765625, 2073.799560546875, 3028.687744140625, 2110.9111328125, 3474.013671875, 1830.8975830078125, 3393.044921875, 1532.28076171875, 3434.5712890625, 1594.7412109375, 2924.097412109375]).map(function (o, index) {
+                if (index % 2 == 0) {
+                    return (o - startx) / 2;
+                } else {
+                    return (o - starty) / 2;
+                }
+            });
+            let elements = [0, 1, 14, 1, 2, 14, 2, 3, 15, 3, 4, 15, 4, 5, 16, 5, 6, 17, 6, 7, 17, 7, 8, 17, 8, 9, 18, 9, 10, 19, 10, 11, 19, 11, 12, 19, 12, 13, 20, 13, 0, 14, 13, 14, 20, 14, 2, 15, 14, 15, 20, 15, 4, 16, 15, 16, 20, 16, 5, 17, 16, 17, 18, 17, 8, 18, 18, 9, 19, 18, 19, 16, 19, 12, 20, 19, 20, 16];
+            let bufferData2 = [
+                0.06060606241226196, 0.6021080017089844,
+                0.1923583596944809, 0.5862977504730225,
+                0.35704874992370605, 0.5665348768234253,
+                0.48616600036621094, 0.5520421266555786,
+                0.4953886568546295, 0.3438735008239746,
+                0.4848484992980957, 0.17259550094604492,
+                0.4795784056186676, 0.07114624977111816,
+                0.43478259444236755, 0.010540187358856201,
+                0.3596837818622589, 0.011857688426971436,
+                0.22266139090061188, 0.04874837398529053,
+                0.10540184378623962, 0.09617918729782104,
+                0.009222661145031452, 0.13175231218338013,
+                0.010540184564888477, 0.321475625038147,
+                0.038208167999982834, 0.4914361238479614,
+                0.18050065636634827, 0.4808959364891052,
+                0.37285903096199036, 0.44532281160354614,
+                0.3636363744735718, 0.29380762577056885,
+                0.37812912464141846, 0.11989462375640869,
+                0.26877471804618835, 0.15151512622833252,
+                0.13965743780136108, 0.1884058117866516,
+                0.1765480935573578, 0.3346508741378784
+            ];
+            let matrix4x4 = [
+                0.000750000006519258, 0, 0, 0,
+                0, -0.0005425531999208033, 0, 0,
+                0, 0, 1, 0,
+                -0.9994999766349792, 0.8134680390357971, 0, 1
+            ];
+
+            let arrayBuffer, arrayBuffer2, arrayBuffer1;
+            gl.useProgram(shaderProgram);
+            arrayBuffer = createArrayBuffer(gl, arrayBuffer, new Float32Array(bufferData1));
+            arrayBuffer1 = createElementArrayBuffer(gl, arrayBuffer1, new Int16Array(elements));
+            gl.enableVertexAttribArray(a_position_Loc);
+            gl.vertexAttribPointer(a_position_Loc, 2, gl.FLOAT, false, 0, 0);
+
+            arrayBuffer2 = createArrayBuffer(gl, arrayBuffer2, new Float32Array(bufferData2));
+
+            gl.activeTexture(gl.TEXTURE1);
+            gl.bindTexture(gl.TEXTURE_2D, texture); //
+            gl.uniform1i(s_texture0_Loc, 1);
+            gl.enableVertexAttribArray(a_texCoord_Loc);
+            gl.vertexAttribPointer(a_texCoord_Loc, 2, gl.FLOAT, false, 0, 0);
+            gl.uniformMatrix4fv(u_matrix_Loc, false, new Float32Array(matrix4x4));
+            gl.uniform4f(u_baseColor_Loc, 1, 1, 1, 1);
+            gl.uniform1i(u_maskFlag_Loc, 0);
+
+            gl.enable(gl.CULL_FACE);
+            gl.enable(gl.BLEND);
+
+            gl.blendEquationSeparate(gl.FUNC_ADD, gl.FUNC_ADD);
+            gl.blendFuncSeparate(gl.ONE, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+
+            gl.texParameteri(gl.TEXTURE_2D, anisotropyExt.TEXTURE_MAX_ANISOTROPY_EXT, maxAnisotropy);
+            gl.drawElements(gl.TRIANGLES, elements.length, gl.UNSIGNED_SHORT, 0);
+            gl.bindTexture(gl.TEXTURE_2D, null);
+        }, 100);
+
+    });
+</script>
+
+</html>
